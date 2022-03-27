@@ -1,0 +1,12 @@
+name: CarnivalHelper
+version: '${project.version}'
+main: xyz.holocons.carnivalhelper.CarnivalHelper
+api-version: 1.18
+prefix: CarnivalPlugin
+authors: [ TraceL ]
+description: Plugin to help with carnival rewards
+website: holocons.xyz
+
+commands:
+  carnival:
+    usage: "/carnival <fix/claim/upgrade>"
