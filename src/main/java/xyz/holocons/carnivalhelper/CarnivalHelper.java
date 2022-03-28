@@ -50,15 +50,15 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
         ItemStack heldItem = player.getInventory().getItemInMainHand();
         if (!isValidCurrency(heldItem)) {
             player.sendMessage(Component.text("The item you are holding is not a yagoold! Super yagoolds are not" +
-                    " fixable/upgradable.")
+                    " fixable/upgradable.", NamedTextColor.RED)
                     .append(Component.newline())
-                    .append(Component.text("Please contact staff through discord if you think this is wrong."))
+                    .append(Component.text("Please contact staff through discord if you think this is wrong.", NamedTextColor.YELLOW))
             );
             return true;
         }
 
         if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage("There is not enough free space in your inventory!");
+            player.sendMessage(Component.text("There is not enough free space in your inventory!", NamedTextColor.RED));
             return true;
         }
 
@@ -79,9 +79,18 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
             Executes scrates commands. One key is equal to one yagoold.
              */
             case "claim" -> {
-                int amount = heldItem.getAmount();
-                this.getLogger().info("Removing yagoold from " + player.getName());
-                player.getInventory().setItemInMainHand(null);
+                int amount = heldItem.getAmount() / 4;
+                int remainder = heldItem.getAmount() % 4;
+
+                if (amount < 1) {
+                    player.sendMessage(Component.text("You don't have enough yagoold!", NamedTextColor.RED));
+                    player.sendMessage(Component.text("4 Yagoold = 1 key", NamedTextColor.YELLOW));
+                    return true;
+                }
+
+                this.getLogger().info("Removing " + amount + " yagoold from " + player.getName());
+                heldItem.setAmount(remainder);
+                player.getInventory().setItemInMainHand(heldItem);
                 String strCommand = "scrates givekey carnivalCrate " + player.getName() + " " + amount + " -v";
                 this.getLogger().info("Executing command [" + strCommand + "]");
                 Bukkit.dispatchCommand(this.getServer().getConsoleSender(), strCommand);
