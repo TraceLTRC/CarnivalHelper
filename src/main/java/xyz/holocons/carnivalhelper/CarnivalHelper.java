@@ -12,10 +12,14 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Merchant;
+import org.bukkit.inventory.MerchantRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class CarnivalHelper extends JavaPlugin implements CommandExecutor {
@@ -128,6 +132,12 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
                 this.getLogger().info("Replaced " + player.getName() + " " + validSuperCurrency.getAmount() + " yagoold.");
                 return true;
             }
+
+            case "shop" -> {
+                Merchant merchant = Bukkit.createMerchant(Component.text("Carnival Shop", NamedTextColor.GOLD, TextDecoration.BOLD));
+
+
+            }
         }
 
         return false;
@@ -181,4 +191,33 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
         return itemStack.getType() == Material.GOLD_NUGGET && itemMeta.hasLore() && itemMeta.lore().size() == 3;
     }
 
+    private List<MerchantRecipe> merchantRecipes() {
+        var validCurrency = makeValidCurrency();
+        var validSuperCurrency = makeValidSuperCurrency();
+        var trades = new MerchantRecipe[12];
+
+        MerchantRecipe recipe;
+
+        // 32 yagoolds = 1 enchanted golden apple
+        recipe = new MerchantRecipe(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), 0, 0, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.addIngredient(validCurrency.asQuantity(32));
+        trades[0] = recipe;
+
+        // 64 yagoolds = 1 netherite ingot
+        recipe = new MerchantRecipe(new ItemStack(Material.NETHERITE_INGOT), 0, 0, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.addIngredient(validCurrency.asQuantity(64));
+        trades[1] = recipe;
+
+        // 128 yagoolds = 1 dragon egg
+        recipe = new MerchantRecipe(new ItemStack(Material.DRAGON_EGG), 0, 0, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.setIngredients(List.of(validCurrency.asQuantity(64), validCurrency.asQuantity(64)));
+        trades[2] = recipe;
+
+        // TODO rest of the trades
+
+        return Arrays.asList(trades);
+    }
 }
