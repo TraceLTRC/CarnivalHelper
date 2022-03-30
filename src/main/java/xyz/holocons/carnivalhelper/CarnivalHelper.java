@@ -274,7 +274,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         itemMeta.displayName(Component.text("1x HoloHead crate key", NamedTextColor.GREEN));
         itemMeta.lore(List.of(
                 Component.text("Right click to get 1", NamedTextColor.YELLOW),
-                Component.text("HoloItems head crate key", NamedTextColor.YELLOW))
+                Component.text("Hololive head crate key", NamedTextColor.YELLOW))
         );
         itemMeta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, "headkey");
 
