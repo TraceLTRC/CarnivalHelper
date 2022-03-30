@@ -1,32 +1,44 @@
 package xyz.holocons.carnivalhelper;
 
+import com.destroystokyo.paper.profile.ProfileProperty;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
-public final class CarnivalHelper extends JavaPlugin implements CommandExecutor {
+public final class CarnivalHelper extends JavaPlugin implements CommandExecutor, Listener {
+
+    private final NamespacedKey KEY = new NamespacedKey(this, "carnival");
+    private final UUID SKULL_OWNER = new UUID(0, 0);
 
     @Override
     public void onEnable() {
         this.getCommand("carnival").setExecutor(this);
+        this.getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
@@ -135,8 +147,9 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
 
             case "shop" -> {
                 Merchant merchant = Bukkit.createMerchant(Component.text("Carnival Shop", NamedTextColor.GOLD, TextDecoration.BOLD));
+                merchant.setRecipes(merchantRecipes());
 
-
+                player.openMerchant(merchant, true);
             }
         }
 
@@ -197,6 +210,8 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
         var trades = new MerchantRecipe[12];
 
         MerchantRecipe recipe;
+        ItemStack itemStack;
+        ItemMeta itemMeta;
 
         // 32 yagoolds = 1 enchanted golden apple
         recipe = new MerchantRecipe(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), 0, 0, false);
@@ -216,8 +231,97 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor 
         recipe.setIngredients(List.of(validCurrency.asQuantity(64), validCurrency.asQuantity(64)));
         trades[2] = recipe;
 
-        // TODO rest of the trades
+        // 64 yagoolds = 1 key for Special HoloItem crate
+        itemStack = new ItemStack(Material.PAPER);
+        itemMeta = itemStack.getItemMeta();
+
+        itemMeta.displayName(Component.text("1x HoloItems crate key", NamedTextColor.GREEN));
+        itemMeta.lore(List.of(
+                Component.text("Right click to get 1\nSpecial HoloItems crate key", NamedTextColor.YELLOW)
+        ));
+        itemMeta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, "holokey");
+
+        itemStack.setItemMeta(itemMeta);
+
+        recipe = new MerchantRecipe(itemStack, 0, 0, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.addIngredient(validCurrency.asQuantity(64));
+        trades[3] = recipe;
+
+        // 32 super yagoolds = 1 head crate key
+        itemStack = new ItemStack(Material.PAPER);
+        itemMeta = itemStack.getItemMeta();
+
+        itemMeta.displayName(Component.text("1x HoloHead crate key", NamedTextColor.GREEN));
+        itemMeta.lore(List.of(
+                Component.text("Right click to get 1\nHololive Head crate key", NamedTextColor.YELLOW)
+        ));
+        itemMeta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, "headkey");
+
+        itemStack.setItemMeta(itemMeta);
+
+        recipe = new MerchantRecipe(itemStack, 0, 0, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.addIngredient(validSuperCurrency.asQuantity(32));
+        trades[4] = recipe;
+
+        // 64 SUper Yagoold = 1 Mano Aloe head
+        itemStack = playerHeadFromBase64("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjZkYWVkZmFkNjM1MmQ2ZWExOGU1YmVhZDBkZWYzMTVkODQwODFmZDljMDZiMWJhMmE2YmI5MjllYmYyOTExNSJ9fX0=");
+        itemMeta = itemStack.getItemMeta();
+
+        itemMeta.displayName(
+                Component.text("Mano Aloe").color(TextColor.color(0xF898CA))
+                        .append(Component.text("'s head", NamedTextColor.YELLOW))
+        );
+
+        itemStack.setItemMeta(itemMeta);
+
+        recipe = new MerchantRecipe(itemStack, 0, 0, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.addIngredient(validSuperCurrency.asQuantity(64));
+        trades[4] = recipe;
 
         return Arrays.asList(trades);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event){
+        var player = event.getPlayer();
+        var item = player.getInventory().getItemInMainHand();
+
+        if (!player.hasPermission("carnivalhelper.use"))
+            return;
+
+        if (item.getType() == Material.AIR || !item.hasItemMeta() || !item.getItemMeta().getPersistentDataContainer().has(KEY))
+            return;
+
+        if (item.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals("holokey")) {
+            this.getLogger().info("Giving " + player + " 1 virtual Special HoloItems key and removing 1 from inventory");
+            player.getInventory().setItemInMainHand(item.asQuantity(item.getAmount() - 1));
+            String command = "scrates givekey holoItemsCrate " + player.getName() + " 1 -v";
+            this.getLogger().info("Executing command [" + command +"]");
+            this.getServer().dispatchCommand(this.getServer().getConsoleSender(), command);
+        } else if (item.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals("headkey")) {
+            this.getLogger().info("Giving " + player + " 1 virtual HoloHead key and removing 1 from inventory");
+            player.getInventory().setItemInMainHand(item.asQuantity(item.getAmount() - 1));
+            String command = "scrates givekey headCrate " + player.getName() + " 1 -v";
+            this.getLogger().info("Executing command [" + command +"]");
+            this.getServer().dispatchCommand(this.getServer().getConsoleSender(), command);
+        }
+    }
+
+    /**
+     * Returns a player head with the base64 texture. Mostly used for GUI.
+     * @param base64 A base 64 string that contains ONLY the texture
+     * @return The ItemStack player head
+     */
+    private ItemStack playerHeadFromBase64(String base64) {
+        final var item = new ItemStack(Material.PLAYER_HEAD);
+        final var meta = (SkullMeta) item.getItemMeta();
+        final var profile = Bukkit.createProfile(SKULL_OWNER);
+        profile.setProperty(new ProfileProperty("textures", base64));
+        meta.setPlayerProfile(profile);
+        item.setItemMeta(meta);
+        return item;
     }
 }
