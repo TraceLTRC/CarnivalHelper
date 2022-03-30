@@ -64,14 +64,6 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         }
 
         ItemStack heldItem = player.getInventory().getItemInMainHand();
-        if (!isValidCurrency(heldItem)) {
-            player.sendMessage(Component.text("The item you are holding is not a yagoold! Super yagoolds are not" +
-                    " fixable/upgradable.", NamedTextColor.RED)
-                    .append(Component.newline())
-                    .append(Component.text("Please contact staff through discord if you think this is wrong.", NamedTextColor.YELLOW))
-            );
-            return true;
-        }
 
         if (player.getInventory().firstEmpty() == -1) {
             player.sendMessage(Component.text("There is not enough free space in your inventory!", NamedTextColor.RED));
@@ -84,6 +76,14 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
             Fixes any gold nugget that has 3 lores (no matter the text) to a valid yagoold. Used for villager trading
              */
             case "fix" -> {
+                if (!isValidCurrency(heldItem)) {
+                    player.sendMessage(Component.text("The item you are holding is not a yagoold! Super yagoolds are not" +
+                                    " fixable/upgradable.", NamedTextColor.RED)
+                            .append(Component.newline())
+                            .append(Component.text("Please contact staff through discord if you think this is wrong.", NamedTextColor.YELLOW))
+                    );
+                    return true;
+                }
                 ItemStack validCurrency = makeValidCurrency();
                 validCurrency.setAmount(heldItem.getAmount());
                 player.getInventory().setItemInMainHand(validCurrency);
@@ -95,6 +95,14 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
             Executes scrates commands. One key is equal to one yagoold.
              */
             case "claim" -> {
+                if (!isValidCurrency(heldItem)) {
+                    player.sendMessage(Component.text("The item you are holding is not a yagoold! Super yagoolds are not" +
+                                    " fixable/upgradable.", NamedTextColor.RED)
+                            .append(Component.newline())
+                            .append(Component.text("Please contact staff through discord if you think this is wrong.", NamedTextColor.YELLOW))
+                    );
+                    return true;
+                }
                 int amount = heldItem.getAmount() / 4;
                 int remainder = heldItem.getAmount() % 4;
 
@@ -117,6 +125,14 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
             Upgrades gold nuggets to iron nuggets.
              */
             case "upgrade" -> {
+                if (!isValidCurrency(heldItem)) {
+                    player.sendMessage(Component.text("The item you are holding is not a yagoold! Super yagoolds are not" +
+                                    " fixable/upgradable.", NamedTextColor.RED)
+                            .append(Component.newline())
+                            .append(Component.text("Please contact staff through discord if you think this is wrong.", NamedTextColor.YELLOW))
+                    );
+                    return true;
+                }
                 ItemStack validSuperCurrency = makeValidSuperCurrency();
 
                 int amount = heldItem.getAmount() / 4;
@@ -147,9 +163,11 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
             case "shop" -> {
                 Merchant merchant = Bukkit.createMerchant(Component.text("Carnival Shop", NamedTextColor.GOLD, TextDecoration.BOLD));
-                merchant.setRecipes(merchantRecipes());
-
+                List<MerchantRecipe> recipes = merchantRecipes();
+                merchant.setRecipes(recipes);
                 player.openMerchant(merchant, true);
+
+                return true;
             }
         }
 
@@ -207,26 +225,26 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
     private List<MerchantRecipe> merchantRecipes() {
         var validCurrency = makeValidCurrency();
         var validSuperCurrency = makeValidSuperCurrency();
-        var trades = new MerchantRecipe[12];
+        var trades = new MerchantRecipe[6];
 
         MerchantRecipe recipe;
         ItemStack itemStack;
         ItemMeta itemMeta;
 
         // 32 yagoolds = 1 enchanted golden apple
-        recipe = new MerchantRecipe(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), 0, 0, false);
+        recipe = new MerchantRecipe(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(32));
         trades[0] = recipe;
 
         // 64 yagoolds = 1 netherite ingot
-        recipe = new MerchantRecipe(new ItemStack(Material.NETHERITE_INGOT), 0, 0, false);
+        recipe = new MerchantRecipe(new ItemStack(Material.NETHERITE_INGOT), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(64));
         trades[1] = recipe;
 
         // 128 yagoolds = 1 dragon egg
-        recipe = new MerchantRecipe(new ItemStack(Material.DRAGON_EGG), 0, 0, false);
+        recipe = new MerchantRecipe(new ItemStack(Material.DRAGON_EGG), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.setIngredients(List.of(validCurrency.asQuantity(64), validCurrency.asQuantity(64)));
         trades[2] = recipe;
@@ -237,13 +255,14 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
         itemMeta.displayName(Component.text("1x HoloItems crate key", NamedTextColor.GREEN));
         itemMeta.lore(List.of(
-                Component.text("Right click to get 1\nSpecial HoloItems crate key", NamedTextColor.YELLOW)
-        ));
+                Component.text("Right click to get 1", NamedTextColor.YELLOW),
+                Component.text("Special HoloItems crate key", NamedTextColor.YELLOW))
+        );
         itemMeta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, "holokey");
 
         itemStack.setItemMeta(itemMeta);
 
-        recipe = new MerchantRecipe(itemStack, 0, 0, false);
+        recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(64));
         trades[3] = recipe;
@@ -254,13 +273,14 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
         itemMeta.displayName(Component.text("1x HoloHead crate key", NamedTextColor.GREEN));
         itemMeta.lore(List.of(
-                Component.text("Right click to get 1\nHololive Head crate key", NamedTextColor.YELLOW)
-        ));
+                Component.text("Right click to get 1", NamedTextColor.YELLOW),
+                Component.text("HoloItems head crate key", NamedTextColor.YELLOW))
+        );
         itemMeta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, "headkey");
 
         itemStack.setItemMeta(itemMeta);
 
-        recipe = new MerchantRecipe(itemStack, 0, 0, false);
+        recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validSuperCurrency.asQuantity(32));
         trades[4] = recipe;
@@ -276,10 +296,10 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
         itemStack.setItemMeta(itemMeta);
 
-        recipe = new MerchantRecipe(itemStack, 0, 0, false);
+        recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validSuperCurrency.asQuantity(64));
-        trades[4] = recipe;
+        trades[5] = recipe;
 
         return Arrays.asList(trades);
     }
@@ -296,13 +316,13 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
             return;
 
         if (item.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals("holokey")) {
-            this.getLogger().info("Giving " + player + " 1 virtual Special HoloItems key and removing 1 from inventory");
+            this.getLogger().info("Giving " + player.getName() + " 1 virtual Special HoloItems key and removing 1 from inventory");
             player.getInventory().setItemInMainHand(item.asQuantity(item.getAmount() - 1));
             String command = "scrates givekey holoItemsCrate " + player.getName() + " 1 -v";
             this.getLogger().info("Executing command [" + command +"]");
             this.getServer().dispatchCommand(this.getServer().getConsoleSender(), command);
         } else if (item.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals("headkey")) {
-            this.getLogger().info("Giving " + player + " 1 virtual HoloHead key and removing 1 from inventory");
+            this.getLogger().info("Giving " + player.getName() + " 1 virtual HoloHead key and removing 1 from inventory");
             player.getInventory().setItemInMainHand(item.asQuantity(item.getAmount() - 1));
             String command = "scrates givekey headCrate " + player.getName() + " 1 -v";
             this.getLogger().info("Executing command [" + command +"]");
