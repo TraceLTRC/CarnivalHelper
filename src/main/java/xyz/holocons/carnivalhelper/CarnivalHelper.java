@@ -11,6 +11,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public final class CarnivalHelper extends JavaPlugin implements CommandExecutor, Listener {
+public final class CarnivalHelper extends JavaPlugin implements CommandExecutor, Listener, TabCompleter {
 
     private final NamespacedKey KEY = new NamespacedKey(this, "carnival");
     private final UUID SKULL_OWNER = new UUID(0, 0);
@@ -38,6 +39,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
     @Override
     public void onEnable() {
         this.getCommand("carnival").setExecutor(this);
+        this.getCommand("carnival").setTabCompleter(this);
         this.getServer().getPluginManager().registerEvents(this, this);
     }
 
@@ -169,9 +171,23 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
                 return true;
             }
-        }
 
-        return false;
+            default -> {
+                player.sendMessage(
+                        Component.text("Carnival Commands", NamedTextColor.GOLD, TextDecoration.BOLD)
+                                .append(Component.newline())
+                                .append(Component.text("/carnival fix", NamedTextColor.AQUA))
+                                .append(Component.text("/carnival claim", NamedTextColor.AQUA))
+                                .append(Component.text("/carnival upgrade", NamedTextColor.AQUA))
+                );
+                return true;
+            }
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        return List.of("fix", "upgrade", "claim");
     }
 
     private ItemStack makeValidCurrency() {
@@ -237,19 +253,19 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         recipe.addIngredient(validCurrency.asQuantity(32));
         trades[0] = recipe;
 
-        // 64 yagoolds = 1 netherite ingot
+        // 20 yagoolds = 1 netherite ingot
         recipe = new MerchantRecipe(new ItemStack(Material.NETHERITE_INGOT), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
-        recipe.addIngredient(validCurrency.asQuantity(64));
+        recipe.addIngredient(validCurrency.asQuantity(20));
         trades[1] = recipe;
 
-        // 128 yagoolds = 1 dragon egg
+        // 64 yagoolds = 1 dragon egg
         recipe = new MerchantRecipe(new ItemStack(Material.DRAGON_EGG), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
-        recipe.setIngredients(List.of(validCurrency.asQuantity(64), validCurrency.asQuantity(64)));
+        recipe.setIngredients(List.of(validCurrency.asQuantity(64)));
         trades[2] = recipe;
 
-        // 64 yagoolds = 1 key for Special HoloItem crate
+        // 20 yagoolds = 1 key for Special HoloItem crate
         itemStack = new ItemStack(Material.PAPER);
         itemMeta = itemStack.getItemMeta();
 
@@ -264,10 +280,10 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
         recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
-        recipe.addIngredient(validCurrency.asQuantity(64));
+        recipe.addIngredient(validCurrency.asQuantity(20));
         trades[3] = recipe;
 
-        // 32 super yagoolds = 1 head crate key
+        // 64 yagoolds = 1 head crate key
         itemStack = new ItemStack(Material.PAPER);
         itemMeta = itemStack.getItemMeta();
 
@@ -282,7 +298,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
 
         recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
-        recipe.addIngredient(validSuperCurrency.asQuantity(32));
+        recipe.addIngredient(validCurrency.asQuantity(64));
         trades[4] = recipe;
 
         // 64 SUper Yagoold = 1 Mano Aloe head
@@ -312,7 +328,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         if (!player.hasPermission("carnivalhelper.use"))
             return;
 
-        if (item.getType() == Material.AIR || !item.hasItemMeta() || !item.getItemMeta().getPersistentDataContainer().has(KEY))
+        if (item.getType() != Material.PAPER || !item.hasItemMeta() || !item.getItemMeta().getPersistentDataContainer().has(KEY))
             return;
 
         if (item.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals("holokey")) {
