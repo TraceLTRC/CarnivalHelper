@@ -241,7 +241,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
     private List<MerchantRecipe> merchantRecipes() {
         var validCurrency = makeValidCurrency();
         var validSuperCurrency = makeValidSuperCurrency();
-        var trades = new MerchantRecipe[7];
+        var trades = new MerchantRecipe[8];
 
         MerchantRecipe recipe;
         ItemStack itemStack;
@@ -253,23 +253,29 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         recipe.addIngredient(validCurrency.asQuantity(4));
         trades[0] = recipe;
 
+        // 1 Super Yagoold = 4 Yagoold
+        recipe = new MerchantRecipe(validCurrency.asQuantity(4), 0, 999, false);
+        recipe.setIgnoreDiscounts(true);
+        recipe.addIngredient(validSuperCurrency.asOne());
+        trades[1] = recipe;
+
         // 32 yagoolds = 1 enchanted golden apple
         recipe = new MerchantRecipe(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(32));
-        trades[1] = recipe;
+        trades[2] = recipe;
 
         // 20 yagoolds = 1 netherite ingot
         recipe = new MerchantRecipe(new ItemStack(Material.NETHERITE_INGOT), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(20));
-        trades[2] = recipe;
+        trades[3] = recipe;
 
         // 64 yagoolds = 1 dragon egg
         recipe = new MerchantRecipe(new ItemStack(Material.DRAGON_EGG), 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.setIngredients(List.of(validCurrency.asQuantity(64)));
-        trades[3] = recipe;
+        trades[4] = recipe;
 
         // 20 yagoolds = 1 key for Special HoloItem crate
         itemStack = new ItemStack(Material.PAPER);
@@ -287,7 +293,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(20));
-        trades[4] = recipe;
+        trades[5] = recipe;
 
         // 64 yagoolds = 1 head crate key
         itemStack = new ItemStack(Material.PAPER);
@@ -305,7 +311,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validCurrency.asQuantity(64));
-        trades[5] = recipe;
+        trades[6] = recipe;
 
         // 64 SUper Yagoold = 1 Mano Aloe head
         itemStack = playerHeadFromBase64("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjZkYWVkZmFkNjM1MmQ2ZWExOGU1YmVhZDBkZWYzMTVkODQwODFmZDljMDZiMWJhMmE2YmI5MjllYmYyOTExNSJ9fX0=");
@@ -321,7 +327,7 @@ public final class CarnivalHelper extends JavaPlugin implements CommandExecutor,
         recipe = new MerchantRecipe(itemStack, 0, 999, false);
         recipe.setIgnoreDiscounts(true);
         recipe.addIngredient(validSuperCurrency.asQuantity(64));
-        trades[6] = recipe;
+        trades[7] = recipe;
 
         return Arrays.asList(trades);
     }
